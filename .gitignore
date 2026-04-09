@@ -1,0 +1,27 @@
+Binaries/
+Intermediate/
+Saved/
+DerivedDataCache/
+Build/
+Content/Resources
+*.uproject.local
+
+
+# 비주얼 스튜디오 (Visual Studio)
+.vs/
+*.sln
+*.suo
+*.vcproj
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+
+# 제트브레인스 라이더 (JetBrains Rider)
+.idea/
+*.sln.DotSettings.user
+
+
+.DS_Store
+Thumbs.db
+*.log
+*.obj
