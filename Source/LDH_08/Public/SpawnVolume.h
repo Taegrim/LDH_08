@@ -11,16 +11,16 @@ UCLASS()
 class LDH_08_API ASpawnVolume : public AActor
 {
 	GENERATED_BODY()
-	
-public:	
+
+public:
 	ASpawnVolume();
-	
+
 	UFUNCTION(BlueprintCallable, Category = "Spawn")
 	AActor* SpawnRandomItem();
 	FSpawnItemRow* GetRandomItem() const;
 	AActor* SpawnItem(TSubclassOf<AActor> ItemClass);
 	FVector GetRandomSpawnLocation() const;
-	
+
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spawn")
 	USceneComponent* Scene;

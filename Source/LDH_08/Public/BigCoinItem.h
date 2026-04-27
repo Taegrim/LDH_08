@@ -8,9 +8,9 @@ UCLASS()
 class LDH_08_API ABigCoinItem : public ACoinItem
 {
 	GENERATED_BODY()
-	
+
 public:
 	ABigCoinItem();
-	
+
 	virtual void ActivateItem(AActor* Activator) override;
 };

@@ -7,7 +7,7 @@ USTRUCT(BlueprintType)
 struct FSpawnItemRow : public FTableRowBase
 {
 	GENERATED_BODY()
-	
+
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawn")
 	FName ItemName;
@@ -16,3 +16,4 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawn")
 	float SpawnChance;
 };
+

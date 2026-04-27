@@ -9,7 +9,7 @@ UCLASS()
 class LDH_08_API ASpartaGameMode : public AGameMode
 {
 	GENERATED_BODY()
-	
+
 public:
 	ASpartaGameMode();
 };

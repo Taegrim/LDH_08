@@ -2,19 +2,22 @@
 
 #include "CoreMinimal.h"
 #include "BaseItem.h"
-#include "CoinItem.generated.h"
+#include "SlowItem.generated.h"
 
 UCLASS()
-class LDH_08_API ACoinItem : public ABaseItem
+class LDH_08_API ASlowItem : public ABaseItem
 {
 	GENERATED_BODY()
 
 public:
-	ACoinItem();
+	ASlowItem();
 
 	virtual void ActivateItem(AActor* Activator) override;
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
-	int32 PointValue;
+	float SlowDuration;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
+	float MoveSpeedMultiplier;
 };

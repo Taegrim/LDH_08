@@ -11,6 +11,6 @@ class LDH_08_API ASmallCoinItem : public ACoinItem
 
 public:
 	ASmallCoinItem();
-	
+
 	virtual void ActivateItem(AActor* Activator) override;
 };

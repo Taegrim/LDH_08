@@ -1,7 +1,7 @@
 #include "HealingItem.h"
 #include "SpartaCharacter.h"
 
-AHealingItem::AHealingItem() 
+AHealingItem::AHealingItem()
 {
 	HealAmount = 20.f;
 	ItemType = "Healing";
@@ -10,12 +10,14 @@ AHealingItem::AHealingItem()
 void AHealingItem::ActivateItem(AActor* Activator)
 {
 	Super::ActivateItem(Activator);
-	
+
 	if (Activator && Activator->ActorHasTag("Player"))
 	{
 		if (ASpartaCharacter* SpartaCharacter = Cast<ASpartaCharacter>(Activator))
 		{
-			SpartaCharacter->AddHealth(HealAmount);			
+			SpartaCharacter->AddHealth(HealAmount);
 		}
+
+		DestroyItem();
 	}
 }

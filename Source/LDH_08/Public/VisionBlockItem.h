@@ -2,19 +2,22 @@
 
 #include "CoreMinimal.h"
 #include "BaseItem.h"
-#include "CoinItem.generated.h"
+#include "VisionBlockItem.generated.h"
 
 UCLASS()
-class LDH_08_API ACoinItem : public ABaseItem
+class LDH_08_API AVisionBlockItem : public ABaseItem
 {
 	GENERATED_BODY()
 
 public:
-	ACoinItem();
+	AVisionBlockItem();
 
 	virtual void ActivateItem(AActor* Activator) override;
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
-	int32 PointValue;
+	float BlockDuration;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
+	float VisionRestrictionStrength;
 };
