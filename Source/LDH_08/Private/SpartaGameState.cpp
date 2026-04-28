@@ -1,10 +1,12 @@
 #include "SpartaGameState.h"
 
 #include "CoinItem.h"
+#include "BombardmentVolume.h"
 #include "SpartaCharacter.h"
 #include "SpartaGameInstance.h"
 #include "SpartaPlayerController.h"
 #include "SpawnVolume.h"
+#include "SpikeTrapVolume.h"
 #include "Kismet/GameplayStatics.h"
 #include "Components/TextBlock.h"
 #include "Blueprint/UserWidget.h"
@@ -21,7 +23,13 @@ void ASpartaGameState::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// UpdateHUD();
+    // 메뉴 레벨 진입 시에도 게임 뒤에서 진행되는 문제 막음
+    const FString MapName = GetWorld() ? GetWorld()->GetMapName() : TEXT("");
+    if (MapName.Contains(TEXT("MenuLevel")))
+    {
+        return;
+    }
+
 	StartLevel();
 
 	GetWorldTimerManager().SetTimer(
@@ -116,6 +124,7 @@ void ASpartaGameState::OnGameOver()
 {
 	GetWorldTimerManager().ClearTimer(WaveTimerHandle);
 	GetWorldTimerManager().ClearTimer(HUDUpdateTimerHandle);
+	StopWaveEnvironmentEvent();
 
 	APlayerController* PlayerController = (GetWorld()) ? GetWorld()->GetFirstPlayerController() : nullptr;
 	if (!PlayerController) return;
@@ -123,7 +132,7 @@ void ASpartaGameState::OnGameOver()
 	if (ASpartaPlayerController* SpartaController = Cast<ASpartaPlayerController>(PlayerController))
 	{
 		SpartaController->SetPause(true);
-		SpartaController->ShowMainMenu(true);
+		SpartaController->ShowMainMenu(EMenuState::GameOver);
 	}
 }
 
@@ -185,8 +194,7 @@ void ASpartaGameState::StartWave()
 	if (FoundVolumes.Num() > 0)
 	{
 		// 하나만 깔 예정이므로 0번 인덱스의 스폰볼륨 가져옴
-		ASpawnVolume* SpawnVolume = Cast<ASpawnVolume>(FoundVolumes[0]);
-		if (SpawnVolume)
+		if (ASpawnVolume* SpawnVolume = Cast<ASpawnVolume>(FoundVolumes[0]))
 		{
 			for (int32 i = 0; i < CurrentWave.SpawnItemCount; ++i)
 			{
@@ -205,8 +213,10 @@ void ASpartaGameState::StartWave()
 		}
 	}
 
+    // 환경 이벤트 시작
+	StartWaveEnvironmentEvent(CurrentWave);
 
-	// 30초 제한시간
+    // 제한 시간 세팅
 	GetWorldTimerManager().SetTimer(
 		WaveTimerHandle,
 		this,
@@ -214,8 +224,6 @@ void ASpartaGameState::StartWave()
 		CurrentWave.WaveDuration,
 		false
 	);
-
-	// UpdateHUD();
 }
 
 void ASpartaGameState::OnWaveTimeUp()
@@ -227,6 +235,7 @@ void ASpartaGameState::EndWave()
 {
 	// 기존 웨이브 관련 정보 제거
 	GetWorldTimerManager().ClearTimer(WaveTimerHandle);
+	StopWaveEnvironmentEvent();
 
 	for (const auto& Item : SpawnedItems)
 	{
@@ -237,7 +246,7 @@ void ASpartaGameState::EndWave()
 	}
 	SpawnedItems.Empty();
 
-
+    // 다음 웨이브 진입 처리
 	++CurrentWaveIndex;
 
 	if (Waves.IsValidIndex(CurrentWaveIndex))
@@ -248,4 +257,117 @@ void ASpartaGameState::EndWave()
 	{
 		EndLevel();
 	}
+}
+
+// 환경 이벤트 시작 함수
+void ASpartaGameState::StartWaveEnvironmentEvent(const FWaveData& WaveData)
+{
+	StopWaveEnvironmentEvent();
+	ShowWaveEnvironmentMessage(WaveData.EnvironmentEvent);
+
+	switch (WaveData.EnvironmentEvent)
+	{
+	case EWaveEnvironmentEvent::SpikeTrap:
+	{
+		TArray<AActor*> FoundVolumes;
+		UGameplayStatics::GetAllActorsOfClass(GetWorld(), ASpikeTrapVolume::StaticClass(), FoundVolumes);
+
+		for (AActor* ActorVolume : FoundVolumes)
+		{
+			if (ASpikeTrapVolume* SpikeTrapVolume = Cast<ASpikeTrapVolume>(ActorVolume))
+			{
+				SpikeTrapVolume->ActivateSpikeTraps();
+			}
+		}
+		break;
+	}
+
+	case EWaveEnvironmentEvent::Bombardment:
+	{
+		TArray<AActor*> FoundVolumes;
+		UGameplayStatics::GetAllActorsOfClass(GetWorld(), ABombardmentVolume::StaticClass(), FoundVolumes);
+
+		for (AActor* ActorVolume : FoundVolumes)
+		{
+			if (ABombardmentVolume* BombardmentVolume = Cast<ABombardmentVolume>(ActorVolume))
+			{
+				BombardmentVolume->StartBombardment();
+			}
+		}
+		break;
+	}
+
+	default:
+		break;
+	}
+}
+
+// 환경 이벤트 중지 함수
+void ASpartaGameState::StopWaveEnvironmentEvent()
+{
+    // 배치된 모든 스파이크 함정 볼륨 가져옴
+	TArray<AActor*> FoundSpikeVolumes;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ASpikeTrapVolume::StaticClass(), FoundSpikeVolumes);
+
+    // 스파이크 함정 비활성화
+	for (AActor* VolumeActor : FoundSpikeVolumes)
+	{
+		if (ASpikeTrapVolume* SpikeTrapVolume = Cast<ASpikeTrapVolume>(VolumeActor))
+		{
+			SpikeTrapVolume->DeactivateSpikeTraps();
+		}
+	}
+
+    // 배치된 모든 폭격 볼륨 가져옴
+	TArray<AActor*> FoundBombardmentVolumes;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ABombardmentVolume::StaticClass(), FoundBombardmentVolumes);
+
+    // 폭격 작동 중지
+	for (AActor* VolumeActor : FoundBombardmentVolumes)
+	{
+		if (ABombardmentVolume* BombardmentVolume = Cast<ABombardmentVolume>(VolumeActor))
+		{
+			BombardmentVolume->StopBombardment();
+		}
+	}
+}
+
+// 플레이어에게 환경 이벤트 발생을 알리는 함수
+void ASpartaGameState::ShowWaveEnvironmentMessage(EWaveEnvironmentEvent EnvironmentEvent)
+{
+	if (EnvironmentEvent == EWaveEnvironmentEvent::None) return;
+
+	APlayerController* PlayerController = GetWorld() ? GetWorld()->GetFirstPlayerController() : nullptr;
+	ASpartaPlayerController* SpartaController = Cast<ASpartaPlayerController>(PlayerController);
+	if (!SpartaController) return;
+
+	UUserWidget* HUDWidget = SpartaController->GetHUDWidget();
+	if (!HUDWidget) return;
+
+	UTextBlock* MessageText = Cast<UTextBlock>(HUDWidget->GetWidgetFromName(TEXT("WaveEventText")));
+	if (!MessageText) return;
+
+    FString Message;
+
+	switch (EnvironmentEvent)
+	{
+	case EWaveEnvironmentEvent::SpikeTrap:
+	    Message = TEXT("스파이크 함정이 발동되었습니다!!!");
+		break;
+
+	case EWaveEnvironmentEvent::Bombardment:
+		Message = TEXT("포격이 시작되었습니다!!!");
+		break;
+
+	default:
+		return;
+	}
+
+    MessageText->SetText(FText::FromString(Message));
+	MessageText->SetVisibility(ESlateVisibility::HitTestInvisible);
+
+    if (UFunction* Func = HUDWidget->FindFunction(FName("PlayWaveEventMessageAnim")))
+    {
+        HUDWidget->ProcessEvent(Func, nullptr);
+    }
 }

@@ -5,6 +5,8 @@
 
 ABaseItem::ABaseItem() : PickupParticle(nullptr), PickupSound(nullptr), ItemType(TEXT("Default Item"))
 {
+	PrimaryActorTick.bCanEverTick = false;
+
 	Scene = CreateDefaultSubobject<USceneComponent>(TEXT("Scene"));
 	SetRootComponent(Scene);
 
