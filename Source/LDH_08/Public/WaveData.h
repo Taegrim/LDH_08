@@ -7,8 +7,8 @@
 UENUM(BlueprintType)
 enum class EWaveEnvironmentEvent : uint8
 {
-	None UMETA(DisplayName = "None"),
-	SpikeTrap UMETA(DisplayName = "Spike Trap"),
+	None        UMETA(DisplayName = "None"),
+	SpikeTrap   UMETA(DisplayName = "Spike Trap"),
 	Bombardment UMETA(DisplayName = "Bombardment")
 };
 

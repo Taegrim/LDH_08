@@ -23,7 +23,13 @@ void ASpartaGameState::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// UpdateHUD();
+    // 메뉴 레벨 진입 시에도 게임 뒤에서 진행되는 문제 막음
+    const FString MapName = GetWorld() ? GetWorld()->GetMapName() : TEXT("");
+    if (MapName.Contains(TEXT("MenuLevel")))
+    {
+        return;
+    }
+
 	StartLevel();
 
 	GetWorldTimerManager().SetTimer(
@@ -126,7 +132,7 @@ void ASpartaGameState::OnGameOver()
 	if (ASpartaPlayerController* SpartaController = Cast<ASpartaPlayerController>(PlayerController))
 	{
 		SpartaController->SetPause(true);
-		SpartaController->ShowMainMenu(true);
+		SpartaController->ShowMainMenu(EMenuState::GameOver);
 	}
 }
 
